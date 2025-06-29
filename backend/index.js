@@ -23,7 +23,6 @@ app.use(cors());
 mongoose.connect('mongodb://localhost:27017/e-commerce');
 
 //API creation
-
 app.get("/",(req,res)=>{
     res.send("Express App is Running");
 })
@@ -48,7 +47,7 @@ app.post("/upload",upload.single('product'),(req,res)=>{
     })
 })
 
-const Product = mongoose.model("Product",{
+const Product = mongoose.model("products", {
     id:{
         type: Number,
         required:true,
@@ -73,14 +72,14 @@ const Product = mongoose.model("Product",{
         type:Number,
         required:true,
     },
-    date:{
-        type:Date,
-        default:Date.now,
-    },
     avilable:{
         type:Boolean,
         default:true,
     },
+    data:{
+        type:Date,
+        default:Date.now,
+    }
 })
 app.post('/addproduct',async(req,res)=>{
     let products = await Product.find({});
@@ -126,6 +125,7 @@ app.get('/allproducts',async(req,res)=>{
     let products = await Product.find({});
     console.log("ALL Products Fetched");
     res.send(products);
+    console.log(products);
 })
 
 //Shema creating for user
@@ -161,7 +161,7 @@ app.post('/signup',async(req,res)=>{
         cart[i]=0;
     }
     const user = new Users({
-        name:req.body.username,
+        name:req.body.name,
         email:req.body.email,
         password:req.body.password,
         cartData:cart,
@@ -263,12 +263,18 @@ app.post('/removefromcart',fetchUser,async(req,res)=>{
 })
 
 //crerating endpoint to get cart data
-
-app.post('/getcart',fetchUser,async()=>{
+app.post('/getcart', fetchUser, async (req, res) => {
     console.log("GetCart");
-    let userData = await Users.findOne({_id:req.user.id});
+
+    const userData = await Users.findOne({ _id: req.user.id });
+
+    if (!userData) {
+        return res.status(404).json({ success: false, message: "User not found" });
+    }
+
     res.json(userData.cartData);
-})
+});
+
 
 app.listen(port,(error)=>{
     if(!error){
